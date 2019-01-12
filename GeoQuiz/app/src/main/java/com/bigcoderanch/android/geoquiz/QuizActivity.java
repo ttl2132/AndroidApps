@@ -16,6 +16,8 @@ public class QuizActivity extends AppCompatActivity {
     private static final String TAG = "QuizActivity";
     private static final String KEY_INDEX = "index";
     private static final String ANSWERED_INDEX = "answered";
+    private static final String CORRECT_INDEX = "correct";
+    private static final String TOTAL_INDEX = "total";
 
     private Button mTrueButton;
     private Button mFalseButton;
@@ -34,6 +36,8 @@ public class QuizActivity extends AppCompatActivity {
 
     private int mCurrentIndex = 0;
     private boolean[] mAnswered = new boolean[mQuestionBank.length];
+    private int mAnsweredCorrect = 0;
+    private int mTotalQuestionsAnswered = 0;
 
 
     @Override
@@ -47,6 +51,8 @@ public class QuizActivity extends AppCompatActivity {
         if(savedInstanceState != null) {
             mCurrentIndex = savedInstanceState.getInt(KEY_INDEX,0);
             mAnswered = savedInstanceState.getBooleanArray(ANSWERED_INDEX);
+            mTotalQuestionsAnswered = savedInstanceState.getInt(TOTAL_INDEX);
+            mAnsweredCorrect = savedInstanceState.getInt(CORRECT_INDEX);
         } else {
             for (int i = 0; i<mQuestionBank.length; i++) mAnswered[i] = false;
         }
@@ -125,6 +131,8 @@ public class QuizActivity extends AppCompatActivity {
         Log.i(TAG, "onSaveInstanceState");
         savedInstanceState.putInt(KEY_INDEX,mCurrentIndex);
         savedInstanceState.putBooleanArray(ANSWERED_INDEX,mAnswered);
+        savedInstanceState.putInt(TOTAL_INDEX, mTotalQuestionsAnswered);
+        savedInstanceState.putInt(CORRECT_INDEX, mAnsweredCorrect);
     }
 
     @Override
@@ -157,11 +165,21 @@ public class QuizActivity extends AppCompatActivity {
 
         if (userPressedTrue == answerIsTrue) {
             messageResId = R.string.correct_toast;
+            mAnsweredCorrect++;
         } else {
             messageResId = R.string.incorrect_toast;
         }
 
         makeText(this, messageResId, Toast.LENGTH_SHORT).show();
+
+        if (++mTotalQuestionsAnswered == mQuestionBank.length )
+            finishGame();
+    }
+
+    private void finishGame () {
+        double percentage = 100.0 * mAnsweredCorrect/mTotalQuestionsAnswered;
+        long score = Math.round(percentage);
+        makeText(this,"Score: " + score + "%",Toast.LENGTH_LONG).show();
     }
 
 }
