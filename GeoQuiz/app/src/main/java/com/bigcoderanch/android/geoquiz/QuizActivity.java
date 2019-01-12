@@ -10,9 +10,12 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import static android.widget.Toast.makeText;
+
 public class QuizActivity extends AppCompatActivity {
     private static final String TAG = "QuizActivity";
     private static final String KEY_INDEX = "index";
+    private static final String ANSWERED_INDEX = "answered";
 
     private Button mTrueButton;
     private Button mFalseButton;
@@ -30,6 +33,7 @@ public class QuizActivity extends AppCompatActivity {
     };
 
     private int mCurrentIndex = 0;
+    private boolean[] mAnswered = new boolean[mQuestionBank.length];
 
 
     @Override
@@ -38,8 +42,13 @@ public class QuizActivity extends AppCompatActivity {
         Log.d(TAG,"onCreate(Bundle) called");
         setContentView(R.layout.activity_quiz);
 
+
+
         if(savedInstanceState != null) {
             mCurrentIndex = savedInstanceState.getInt(KEY_INDEX,0);
+            mAnswered = savedInstanceState.getBooleanArray(ANSWERED_INDEX);
+        } else {
+            for (int i = 0; i<mQuestionBank.length; i++) mAnswered[i] = false;
         }
 
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
@@ -61,14 +70,20 @@ public class QuizActivity extends AppCompatActivity {
                 View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        checkAnswer(true);
+                        if (mAnswered[mCurrentIndex])
+                            makeText(QuizActivity.this, R.string.ans_response,Toast.LENGTH_SHORT).show();
+                        else
+                            checkAnswer(true);
                     }
                 });
         mFalseButton.setOnClickListener(new
             View.OnClickListener() {
                 @Override
                 public void onClick (View v) {
-                    checkAnswer(false);
+                    if (mAnswered[mCurrentIndex])
+                        makeText(QuizActivity.this, R.string.ans_response,Toast.LENGTH_SHORT).show();
+                    else
+                        checkAnswer(false);
                 }
             });
 
@@ -109,6 +124,7 @@ public class QuizActivity extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
         Log.i(TAG, "onSaveInstanceState");
         savedInstanceState.putInt(KEY_INDEX,mCurrentIndex);
+        savedInstanceState.putBooleanArray(ANSWERED_INDEX,mAnswered);
     }
 
     @Override
@@ -135,6 +151,7 @@ public class QuizActivity extends AppCompatActivity {
     }
 
     private void checkAnswer(boolean userPressedTrue) {
+        mAnswered[mCurrentIndex] = true;
         boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
         int messageResId = 0;
 
@@ -144,7 +161,7 @@ public class QuizActivity extends AppCompatActivity {
             messageResId = R.string.incorrect_toast;
         }
 
-        Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
+        makeText(this, messageResId, Toast.LENGTH_SHORT).show();
     }
 
 }
